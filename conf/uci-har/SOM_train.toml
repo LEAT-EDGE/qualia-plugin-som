@@ -1,0 +1,42 @@
+[bench]
+name = "UCI-HAR_SOM_train"
+seed = 2
+first_run = 1
+last_run = 1
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchSOM'
+
+[deploy]
+target = 'Linux'
+converter.kind = 'QualiaCodeGen'
+quantize = ['float32']
+optimize = ['']
+
+[dataset]
+kind = "UCI_HAR"
+params.variant = "raw"
+params.path = "data/UCI HAR Dataset/"
+
+[[preprocessing]]
+kind = "DatamodelConverter"
+
+[[preprocessing]]
+kind = "Class2BinMatrix"
+
+[model_template]
+kind = "DSOM"
+epochs = 30
+batch_size = 128
+params.neurons = [8, 8]
+params.label_sigma = 0.25
+params.learning_rate = 0.0034
+params.elasticity = 0.078
+#load = true
+#train = false
+
+[[model]]
+name = "uci-har_som"
+disabled = false
+

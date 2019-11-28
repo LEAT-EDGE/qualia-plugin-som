@@ -1,0 +1,14 @@
+__pycache__
+*~
+out/
+logs/
+lightning_logs/
+data/
+datasets/
+checkpoints/
+.idea/
+*.egg-info/
+build/
+*.sh
+vivado*.log
+vivado*.jou

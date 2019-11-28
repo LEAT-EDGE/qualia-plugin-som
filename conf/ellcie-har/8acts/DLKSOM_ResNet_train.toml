@@ -1,0 +1,235 @@
+[bench]
+name = "Ellcie-HAR_DLKSOM_ResNet_train"
+seed = 4
+first_run = 1
+last_run = 1
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchDLSOM'
+
+[deploy]
+target = 'Linux'
+converter.kind = 'QualiaCodeGen'
+quantize = ['float32']
+optimize = ['']
+
+[dataset]
+kind = "EllcieHAR"
+params.variant = "UCA-EHAR"
+params.path = "data/UCA-EHAR_07-12-21"
+
+#[experimenttracking]
+#kind = "Neptune"
+#params.config = 'conf/neptune.toml'
+#params.project_name = 'MicroAI-EllcieHAR'
+
+[[preprocessing]]
+kind = "RemoveActivity"
+params.activities = [
+	#"STANDING",
+	"STAND_TO_SIT",
+	#"SITTING",
+	"SIT_TO_STAND",
+	#"WALKING",
+	#"LYING",
+	#"WALKING_DOWNSTAIRS",
+	#"WALKING_UPSTAIRS",
+	"DRIVING",
+	##"NODDING",
+	##"TRANSITION",
+	#"RUNNING",
+	#"DRINKING",
+	"SIT_TO_LIE",
+	"LIE_TO_SIT"
+]
+
+[[preprocessing]]
+kind = "RemoveSensor"
+params.sensorkinds = ["Barometer"]
+
+#[[preprocessing]]
+#kind = "BandPassFilter"
+#params.f1 = 0.01
+#params.f2 = 1.0
+##params.f2 = 100.0
+#params.sensorkind = "Barometer"
+#params.dimension = "p"
+
+[[preprocessing]]
+kind = "DatasetSplitterBySubjects"
+#['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T12', 'T13', 'T14', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
+#params.source_subjects = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T12', 'T13', 'T14', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
+#params.dest_subjects = []
+
+# test subjects with drinking
+#Result(combination=array(['T4', 'T5', 'T7', 'T19', 'T20'], dtype='<U3'), mean=24.50350249729214, std=1.4015159401704411, ratios=array([23.186762536873157, 26.93521146293022, 25.361542018749738,
+#       23.375860439574474, 24.051639583278106, 23.106022896963662,
+#       23.70202569105265, 26.308955348915138], dtype=object))
+#params.source_subjects = ['T1', 'T2', 'T3', 'T6', 'T8', 'T9', 'T10', 'T12', 'T13', 'T14', 'T16', 'T17', 'T18', 'T21']
+#params.dest_subjects = ['T4', 'T5', 'T7', 'T19', 'T20']
+
+params.source_subjects = ['T1', 'T4', 'T6', 'T8', 'T7', 'T9', 'T10', 'T12', 'T13', 'T14', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
+params.dest_subjects = ['T2', 'T3', 'T5']
+
+
+#params.source_subjects = ['T1', 'T2', 'T5', 'T6', 'T7', 'T8', 'T9', 'T12', 'T13', 'T16', 'T17', 'T19', 'T20', 'T21'] # 'T15'
+#params.dest_subjects = ['T3', 'T4', 'T10', 'T14', 'T18']
+
+#params.source_subjects = ['T3', 'T4', 'T5', 'T6']
+#params.dest_subjects = ['T1', 'T2']
+#params.source_subjects = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T12', 'T17', 'T18']
+#params.dest_subjects = ['T19', 'T20', 'T21']
+
+#params.source_subjects = ['T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T12', 'T13', 'T14', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
+#params.dest_subjects = ['T1', 'T2', 'T3', 'T4']
+#params.source_subjects = ['T1', 'T2', 'T3', 'T4', 'T9', 'T10', 'T12', 'T13', 'T14', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
+#params.dest_subjects = ['T5', 'T6', 'T7', 'T8']
+#params.source_subjects = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T14', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
+#params.dest_subjects = ['T9', 'T10', 'T12', 'T13']
+#params.source_subjects = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T12', 'T13', 'T19', 'T20', 'T21']
+#params.dest_subjects = ['T14', 'T16', 'T17', 'T18']
+#params.source_subjects = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T12', 'T13', 'T14', 'T16', 'T17', 'T18']
+#params.dest_subjects = ['T19', 'T20', 'T21', 'T1']
+params.source = "train"
+params.dest = "test"
+
+[[preprocessing]]
+kind = "PrintHARDataModelSummary"
+
+[[preprocessing]]
+kind = "DatamodelConverter"
+
+[[preprocessing]] # Must be applied before Class2BinMatrix and DatasetSplitter
+kind = "Window"
+#params.size = 32
+#params.stride = 8
+params.size = 64
+params.stride = 16
+params.unique_label_per_window = true
+params.no_overlapping_labels = false
+
+[[preprocessing]] # Must be applied after Window
+kind = "Class2BinMatrix"
+params.classes = 8 # PACK-2 12 classes, T1 15 classes, PACK-2+3 13 classes
+
+#[[preprocessing]]
+#kind = "Normalize"
+#params.method = 'z-score'
+#params.axis = 0
+#params.debug = true
+
+[[data_augmentation]]
+kind = "TimeShifting"
+
+[[data_augmentation]]
+kind = "TimeWarping"
+params.sigma = 0.05
+
+[[data_augmentation]]
+kind = "Rotation"
+params.sigma = 0.05
+
+#[[postprocessing]]
+#kind = "FuseBatchNorm"
+#export = true
+
+[model_template]
+kind = "DLSOM"
+
+params.dl.kind = "ResNet"
+#params.dl.epochs = 750
+params.dl.epochs = 0 # Do not train DL model
+params.dl.load = true # Load pre-trained DL model
+params.dl.batch_size = 768
+params.dl.params.prepool 	= 1
+params.dl.params.strides	= [1, 2]
+params.dl.params.num_blocks	= [2]
+params.dl.params.filters 	= [32, 32]
+params.dl.params.kernel_sizes 	= [3, 3]
+params.dl.params.paddings	= [1, 1]
+params.dl.params.batch_norm 	= true
+
+params.fm_output = 'max_pool'
+
+#params.som.epochs = 50
+params.som.epochs = 5
+params.som.batch_size = 256
+params.som.params.som_layer = "KSOM"
+params.som.params.neurons = [8, 8]
+params.som.params.label_sigma = 1.0450523100480082
+#params.som.params.learning_rate = 0.0034
+#params.som.params.elasticity = 0.078
+#params.som.params.learning_rate = 0.33819523946879154
+#params.som.params.elasticity = 1.9162309672240037
+params.som.params.learning_rate = [0.1, 0.001]
+params.som.params.neighbourhood_width = [0.1, 0.001]
+
+[model_template.optimizer]
+#kind = "Adam"
+#kind = "SGD"
+#params.lr               = 0.01 # 0.717
+#params.lr               = 0.01 # 0.717
+#params.momentum		= 0.9
+kind = "SGD"
+params.lr               = 0.01 # 0.717
+params.momentum		= 0.9
+params.weight_decay	= 5e-4
+
+[model_template.optimizer.scheduler]
+kind = "MultiStepLR"
+#params.milestones	= [100, 150, 175, 188] # 0.717
+#params.milestones	= [75, 150, 200, 225]
+#params.gamma		= 0.1 # 0.717
+#params.milestones	= [75, 150, 200, 225]
+params.milestones	= [20, 30, 35]
+params.gamma		= 0.1
+
+
+[[model]]
+name = "ellciehar_dlsom_resnet"
+disabled = false
+params.dl.name = "ellciehar_resnetv1_32_r12"
+
+
+[parameter_research]
+params.optimize.params.n_trials = 1000
+params.study.load = false
+params.study.params.direction = "maximize"
+params.study.params.study_name = "Ellcie-HAR_DLKSOM_ResNet_parameter_research"
+params.study.params.storage = "sqlite:///out/parameter_research.sqlite"
+params.study.params.load_if_exists = true
+
+[parameter_research.params.trial]
+params.som.params.label_sigma.kind = 'suggest_float'
+params.som.params.label_sigma.params.name = 'label_sigma'
+params.som.params.label_sigma.params.low = 0.25
+params.som.params.label_sigma.params.high = 1.75
+params.som.epochs.kind = 'suggest_int'
+params.som.epochs.params.name = 'epochs'
+params.som.epochs.params.low = 1
+params.som.epochs.params.high = 60
+
+[[parameter_research.params.trial.params.som.params.learning_rate]]
+kind = 'suggest_float'
+params.name = 'learning_rate_i'
+params.low = 0.05
+params.high = 2.0
+
+[[parameter_research.params.trial.params.som.params.learning_rate]]
+kind = 'suggest_float'
+params.name = 'learning_rate_f'
+params.low = 0.0001
+params.high = 0.1
+
+[[parameter_research.params.trial.params.som.params.neighbourhood_width]]
+kind = 'suggest_float'
+params.name = 'neighbourhood_width_i'
+params.low = 0.05
+params.high = 10.0
+
+[[parameter_research.params.trial.params.som.params.neighbourhood_width]]
+kind = 'suggest_float'
+params.name = 'neighbourhood_width_f'
+params.low = 0.0001
+params.high = 0.1

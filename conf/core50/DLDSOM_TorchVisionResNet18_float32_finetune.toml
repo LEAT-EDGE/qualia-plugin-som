@@ -1,0 +1,100 @@
+[bench]
+name = "DLDSOM_CORe50_ResNet_float32_finetune"
+seed = 2
+first_run = 1
+last_run = 1
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchDLSOM'
+
+[deploy]
+target = 'Linux'
+converter.kind = 'QualiaCodeGen'
+quantize = ['int16']
+optimize = ['']
+
+[dataset]
+kind = "CORe50"
+params.path = "data/core50"
+params.variant = 'category'
+#params.variant = 'object'
+#params.sessions = ['s1']
+
+[[preprocessing]]
+kind = "Class2BinMatrix"
+
+#[[preprocessing]]
+#kind = "Normalize"
+#params.method = 'z-score'
+#params.method = 'min-max'
+#params.axis = 0
+#params.debug = true
+
+#[[postprocessing]]
+#kind = "FuseBatchNorm"
+#export = true
+
+#[[postprocessing]]
+#kind = "QuantizationAwareTraining"
+#export = true
+#params.width = 16
+#params.epochs = 0
+#params.batch_size = 128
+#params.model.params.quantize_bias	= true
+#params.model.params.quantize_linear	= true
+#params.force_q = 9
+
+[[postprocessing]]
+kind = "DLSOMCORe50FineTuning"
+params.epochs = 1
+params.first_batch = 's1'
+params.batches = ['s2', 's4', 's5', 's6', 's8', 's9', 's11']
+#params.batches = ['s2']
+params.shuffle_batches = true
+params.relabel = 'batch'
+#params.dsom.elasticity = 5.37389527147
+params.dsom.learning_rate = 0.00379058365
+
+[model_template]
+kind = "DLSOM"
+
+epochs = 0
+load = false
+train = false
+evaluate = false
+batch_size = 512
+
+params.dl.kind = "TorchVisionModel"
+params.dl.epochs = 0
+params.dl.load = true
+params.dl.fuse_batch_norm = true
+params.dl.batch_size = 512
+
+params.fm_output = 'pretrained_model_avgpool'
+
+params.som.epochs = 32
+params.som.batch_size = 256
+params.som.params.som_layer = "DSOM"
+params.som.params.neurons = [16, 19]
+params.som.params.label_sigma = 3.7811028108399047
+params.som.params.learning_rate = 0.007581167314163834
+params.som.params.elasticity = 1.5934738178681074
+
+[[model]]
+name = "core50_dldsom_torchvisionresnet18"
+params.dl.name = "core50_torchvisionresnet18"
+params.dl.params.model = 'resnet18'
+params.dl.params.pretrained = true
+disabled = false
+#disabled = true
+
+#[[model]]
+#name = "core50_dldsom_torchvisionresnet152"
+#params.dl.name = "core50_torchvisionresnet152_r1"
+#params.dl.params.model = 'resnet152'
+#params.dl.params.pretrained = true
+#disabled = false
+#disabled = true
+
+

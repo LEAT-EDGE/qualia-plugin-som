@@ -1,0 +1,104 @@
+[bench]
+name = "UCI-HAR_CNN+KSOM_float32_train"
+seed = 2
+first_run = 1
+last_run = 15
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchDLSOM'
+
+[deploy]
+target = 'SparkFunEdge'
+deployer.params.dev = '/dev/serial/by-id/usb-1a86_USB2.0-Serial-*'
+evaluator.params.dev = '/dev/serial/by-id/usb-1a86_USB2.0-Serial-*'
+converter.kind = 'QualiaCodeGen'
+quantize = ['float32']
+optimize = ['']
+limit = 20
+
+[dataset]
+kind = "UCI_HAR"
+params.variant = "raw"
+params.path = "data/UCI HAR Dataset/"
+
+[[preprocessing]]
+kind = "DatamodelConverter"
+
+[[preprocessing]]
+kind = "Class2BinMatrix"
+
+[model_template]
+kind = "DLSOM"
+
+#epochs = 0
+#load = true
+#train = false
+
+params.dl.kind = "CNN"
+#params.dl.epochs = 750
+params.dl.epochs = 0 # Do not train DL model
+params.dl.load = true # Load pre-trained DL model
+params.dl.batch_size = 768
+params.dl.iteration = 1
+params.dl.params.batch_norm = true
+params.dl.fuse_batch_norm = true
+
+params.fm_output = 'relu2'
+
+#params.som.epochs = 25
+params.som.epochs = 2
+params.som.batch_size = 128
+params.som.params.som_layer = "KSOM"
+params.som.params.neurons = [8, 8]
+params.som.params.learning_rate = [0.4, 0.001]
+params.som.params.neighbourhood_width = [5.00, 0.01]
+params.som.params.label_sigma = 0.25
+
+#C5+S1
+[[model]]
+name = "uci-har_cnn+ksom_c5_8x8"
+params.dl.name = "uci-har_cnn_10_3-10_3_120"
+params.dl.params.filters = [10, 10]
+params.dl.params.kernel_sizes = [3, 3]
+params.dl.params.fc_units = [120]
+params.dl.params.pool_sizes = [2, 0]
+disabled = false
+
+#C6+S1
+[[model]]
+name = "uci-har_cnn+ksom_c6_8x8"
+params.dl.name = "uci-har_cnn_20_3-20_3_120"
+params.dl.params.filters = [20, 20]
+params.dl.params.kernel_sizes = [3, 3]
+params.dl.params.fc_units = [120]
+params.dl.params.pool_sizes = [2, 0]
+disabled = false
+
+#C7+S1
+[[model]]
+name = "uci-har_cnn+ksom_c7_8x8"
+params.dl.name = "uci-har_cnn_48_5-32_3_120"
+params.dl.params.filters = [48, 32]
+params.dl.params.kernel_sizes = [5, 3]
+params.dl.params.fc_units = [120]
+params.dl.params.pool_sizes = [4, 0]
+disabled = false
+
+#C8+S1
+[[model]]
+name = "uci-har_cnn+ksom_c8_8x8"
+params.dl.name = "uci-har_cnn_64_7-48_5_120"
+params.dl.params.filters = [64, 48]
+params.dl.params.kernel_sizes = [7, 5]
+params.dl.params.fc_units = [120]
+params.dl.params.pool_sizes = [4, 0]
+disabled = false
+
+[parameter_research]
+params.optimize.params.n_trials = 100
+params.study.load = false
+params.study.params.direction = "maximize"
+params.study.params.study_name = "UCI-HAR_CNN+DSOM_parameter_research2"
+params.study.params.storage = "sqlite:///out/parameter_research.sqlite"
+params.study.params.load_if_exists = true

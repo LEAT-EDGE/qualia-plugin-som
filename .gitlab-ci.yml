@@ -1,0 +1,42 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+default:
+  image: archlinux:latest
+  before_script:
+    - pacman -Syu --noconfirm --needed git which curl wget unzip make gcc arm-none-eabi-gcc arm-none-eabi-newlib vim
+    - pacman -S --noconfirm --needed numactl
+    - pacman -S --noconfirm --needed python-pytorch python-tensorflow python-pip python-numpy
+    - pacman -S --noconfirm --needed python-scikit-learn python-pycryptodome python-pyserial python-tomlkit python-gitpython
+    - pacman -S --noconfirm --needed python-tabulate python-matplotlib
+    - pacman -S --noconfirm --needed python-pytest python-pytest-dependency python-pytest-xdist python-pytest-env
+    - pacman -S --noconfirm --needed python-torchvision python-jinja python-tqdm python-networkx python-aiohttp
+    - pacman -S --noconfirm --needed python-async-timeout python-charset-normalizer python-frozenlist python-multidict 
+    - pacman -S --noconfirm --needed python-yarl python-aiosignal python-dill python-filelock
+    - pacman -S --noconfirm --needed qt6-base # Temporary workaround for missing depends in python-pytorch 2.0.0-4
+    - pacman -U --noconfirm /mnt/hdd/Software/STMicroelectronics/STM32CubeIDE/stm32cubeide-1.12.0-2-x86_64.pkg.tar.zst
+    - pacman -U --noconfirm /mnt/hdd/Software/Ambiq/ambiqsuite-2.5.1-2-any.pkg.tar.zst
+    - mkdir -p ~/STM32Cube/Repository/Packs/STMicroelectronics/X-CUBE-AI/5.2.0/Utilities
+    - unzip /mnt/hdd/Software/STMicroelectronics/X-CUBE-AI/en.x-cube-ai-v5-2-0-linux.zip
+    - unzip -q stm32ai-linux-5.2.0.zip -d ~/STM32Cube/Repository/Packs/STMicroelectronics/X-CUBE-AI/5.2.0/Utilities
+
+stages:          # List of stages for jobs, and their order of execution
+  - test
+
+test-job:       # This job runs in the build stage, which runs first.
+  stage: test
+  script:
+    - mkdir data
+    - pushd data
+    - unzip -q "/mnt/hdd/Datasets/UCI%20HAR%20Dataset.zip"
+    - ln -s /mnt/hdd/Datasets/WSMNIST ./
+    - unzip -q /mnt/hdd/Datasets/GTSRB/GTSRB_Final_Training_Images.zip
+    - unzip -q /mnt/hdd/Datasets/GTSRB/GTSRB_Final_Test_Images.zip
+    - pushd GTSRB
+    - unzip -q /mnt/hdd/Datasets/GTSRB/GTSRB_Final_Test_GT.zip
+    - popd
+    - popd
+    - tar -C third_party/tflite-micro/tensorflow/lite/micro/tools/make -xf /mnt/hdd/Software/TensorFlow/tflite-micro/downloads.tar.zst
+    - pip install -e .[tests,pytorch,tensorflow,gtsrb]
+    - pytest -m "not dependency and not deploy" -n auto --dist=loadgroup -vvv -s # xdist incompatible with dependency
+    - pytest -m "dependency and not deploy" -vvv -s

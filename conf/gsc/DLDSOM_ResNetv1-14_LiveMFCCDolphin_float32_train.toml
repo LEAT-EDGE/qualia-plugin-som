@@ -1,0 +1,148 @@
+[bench]
+name = "GSC_DLDSOM_ResNetv1-14_MFCCDolphin_float32_train"
+seed = 2
+first_run = 1
+last_run = 15
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchDLSOM'
+
+[deploy]
+target = 'Linux'
+converter.kind = 'QualiaCodeGen'
+quantize = ['float32']
+optimize = ['']
+compress = [1]
+
+[dataset]
+kind = "GSC"
+params.variant = "v2"
+params.path = "data/speech_commands_v0.02/"
+params.subset = "no_background_noise"
+
+[[preprocessing]]
+kind = "Class2BinMatrix"
+
+[[preprocessing]]
+kind = "Normalize"
+params.method = 'z-score'
+params.axis = 0
+params.debug = true
+
+[[data_augmentation]]
+kind = "GaussianNoise"
+params.sigma = 0.00175
+
+[[data_augmentation]]
+kind = "TimeWarping"
+params.sigma = 0.0675
+
+[[data_augmentation]]
+kind = "TimeShifting"
+params.alpha = 1.0
+
+#[[data_augmentation]]
+#kind = "Mixup"
+#params.alpha = 0.5
+
+[[data_augmentation]]
+kind = "MFCC"
+params.evaluate = true
+params.sample_rate = 16000
+#params.n_mfcc = 64
+params.n_mfcc = 10
+params.log_mels = true
+params.melkwargs.n_fft = 1024
+params.melkwargs.n_mels = 40
+#params.melkwargs.win_length = 1024
+params.melkwargs.win_length = 640
+#params.melkwargs.hop_length = 128
+params.melkwargs.hop_length = 320
+params.melkwargs.f_min = 20
+params.melkwargs.f_max = 4000
+
+
+#[[postprocessing]]
+#kind = "FuseBatchNorm"
+#export = true
+
+[model_template]
+kind = "DLSOM"
+
+params.input_shape	= [49, 10]
+
+params.dl.kind = "ResNet"
+params.dl.epochs = 0
+params.dl.load = true
+params.dl.batch_size = 1536
+params.dl.fuse_batch_norm = true
+params.dl.params.input_shape	= [49, 10]
+params.dl.params.prepool 		= 1
+params.dl.params.kernel_sizes 	= [7, 3, 3]
+params.dl.params.paddings		= [3, 1, 1]
+params.dl.params.strides		= [1, 2]
+params.dl.params.batch_norm 	= true
+params.dl.params.bn_momentum	= 0.1
+params.dl.params.num_blocks	= [2]
+params.dl.params.dims		= 1
+
+params.fm_output = 'avg_pool'
+
+params.som.epochs = 27
+params.som.batch_size = 256
+params.som.params.som_layer = "DSOM"
+params.som.params.neurons = [5, 16]
+params.som.params.label_sigma = 0.12663479135255434
+params.som.params.learning_rate = 0.6224411105967932
+params.som.params.elasticity = 1.2932335034890137
+
+
+[[model]]
+name = "gscdolphin_dlsomresnetv1-14_48"
+params.dl.name = "gscdolphin_resnetv1-14_48_r1"
+params.dl.params.filters 		= [48, 48, 48, 48]
+params.dl.params.kernel_sizes	= [7, 3, 3, 3]
+params.dl.params.paddings		= [1, 1, 1, 1]
+params.dl.params.strides		= [1, 2, 2, 2]
+params.dl.params.num_blocks	= [2, 2, 2]
+disabled = false
+#disabled = true
+
+[parameter_research]
+params.optimize.params.n_trials = 1000
+params.study.load = false
+params.study.params.direction = "maximize"
+params.study.params.study_name = "GSC_DLDSOM_ResNetv1-14_MFCCDolphin_parameter_research"
+params.study.params.storage = "sqlite:///out/parameter_research.sqlite"
+params.study.params.load_if_exists = true
+
+[parameter_research.params.trial]
+params.som.params.elasticity.kind = 'suggest_float'
+params.som.params.elasticity.params.name = 'elasticity'
+params.som.params.elasticity.params.low = 0.005
+params.som.params.elasticity.params.high = 4.0
+params.som.params.learning_rate.kind = 'suggest_float'
+params.som.params.learning_rate.params.name = 'learning_rate'
+params.som.params.learning_rate.params.low = 0.005
+params.som.params.learning_rate.params.high = 2.0
+params.som.params.label_sigma.kind = 'suggest_float'
+params.som.params.label_sigma.params.name = 'label_sigma'
+params.som.params.label_sigma.params.low = 0.1
+params.som.params.label_sigma.params.high = 8.0
+params.som.epochs.kind = 'suggest_int'
+params.som.epochs.params.name = 'epochs'
+params.som.epochs.params.low = 1
+params.som.epochs.params.high = 50
+
+[[parameter_research.params.trial.params.som.params.neurons]]
+kind = 'suggest_int'
+params.name = 'neurons_x'
+params.low = 5
+params.high = 24
+
+[[parameter_research.params.trial.params.som.params.neurons]]
+kind = 'suggest_int'
+params.name = 'neurons_y'
+params.low = 2
+params.high = 24

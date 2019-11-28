@@ -1,0 +1,76 @@
+[bench]
+name = "UCI-HAR_SOM_train"
+seed = 2
+first_run = 1
+last_run = 1
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchDLSOM'
+
+[deploy]
+target = 'Linux'
+converter.kind = 'QualiaCodeGen'
+quantize = ['float32']
+optimize = ['']
+
+[dataset]
+kind = "UCI_HAR"
+params.variant = "raw"
+params.path = "data/UCI HAR Dataset/"
+
+[[preprocessing]]
+kind = "DatamodelConverter"
+
+[[preprocessing]]
+kind = "Class2BinMatrix"
+
+[[data_augmentation]]
+kind = "TimeShifting"
+
+[[data_augmentation]]
+kind = "TimeWarping"
+params.sigma = 0.05
+
+[[data_augmentation]]
+kind = "Rotation"
+params.sigma = 0.05
+
+[model_template]
+kind = "DLSOM"
+
+params.dl.kind = "CNN"
+params.dl.epochs = 40
+params.dl.batch_size = 32
+params.dl.params.batch_norm = false
+params.dl.params.dropout = 0.1
+
+#params.fm_output = '_13' # With batch_norm
+params.fm_output = '_10' # Without batch_norm
+
+params.som.kind = "DSOM"
+params.som.epochs = 30
+params.som.batch_size = 128
+params.som.params.neurons = [8, 8]
+params.som.params.label_sigma = 1.25
+params.som.params.learning_rate = 0.05
+params.som.params.elasticity = 1.2
+
+#load = true
+#train = false
+
+[model_template.optimizer]
+kind = "SGD"
+params.lr               = 0.025
+params.momentum		= 0.9
+params.weight_decay	= 5e-4
+
+[model_template.optimizer.scheduler]
+kind = "MultiStepLR"
+params.milestones	= [20, 30, 35]
+params.gamma		= 0.13
+
+[[model]]
+name = "uci-har_som"
+disabled = false
+

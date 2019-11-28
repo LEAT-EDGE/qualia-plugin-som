@@ -1,0 +1,147 @@
+[bench]
+name = "HD_DLDSOM_ResNet_finetune"
+seed = 3
+first_run = 1
+last_run = 15
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchDLSOM'
+
+[deploy]
+target = 'Linux'
+converter.kind = 'QualiaCodeGen'
+quantize = ['int16']
+optimize = ['']
+
+[dataset]
+kind = "HD"
+params.path = "data/hd_audio"
+params.variant = 'by-subject'
+params.test_subjects = [3, 7, 8]
+
+[[preprocessing]]
+kind = "Class2BinMatrix"
+
+#[[preprocessing]]
+#kind = "Normalize"
+#params.method = 'z-score'
+#params.method = 'min-max'
+#params.axis = 0
+#params.debug = true
+
+#[[postprocessing]]
+#kind = "FuseBatchNorm"
+#export = true
+
+#[[postprocessing]]
+#kind = "QuantizationAwareTraining"
+#export = true
+#params.width = 16
+#params.epochs = 0
+#params.batch_size = 128
+#params.model.params.quantize_bias	= true
+#params.model.params.quantize_linear	= true
+#params.force_q = 9
+
+[[postprocessing]]
+kind = "DLSOMFineTuning"
+#params.epochs = 10
+params.epochs = 6
+params.subject = 8
+params.test_ratio = 0.5
+params.relabel = 'original'
+params.label_ratio = 1.0
+params.drop_unlabelled = true
+#params.dsom.learning_rate = 0.11273174649 # original/3
+#params.dsom.elasticity = 0.95811548361 # original/2
+#params.dsom.learning_rate = 0.0511273174649 # original/3
+#params.dsom.elasticity = 0.595811548361 # original/2
+#params.dsom.learning_rate = 0.5174683297767348
+#params.dsom.elasticity = 0.7136293252868753
+#params.dsom.elasticity = 2.58646700698
+#params.dsom.learning_rate = 0.31122055529
+#params.dsom.elasticity = 1.93985025523
+#params.dsom.learning_rate = 1.24488222119
+#params.dsom.elasticity = 
+#params.dsom.elasticity = 3.87970051047
+
+
+[model_template]
+kind = "DLSOM"
+
+#epochs = 0
+load = true
+train = false
+
+params.dl.kind = "ResNet"
+params.dl.epochs = 0
+params.dl.load = true
+params.dl.batch_size = 256
+params.dl.params.dims		= 1
+
+params.fm_output = 'postpool'
+
+params.som.epochs = 27
+params.som.batch_size = 256
+params.som.params.som_layer = "DSOM"
+params.som.params.neurons = [5, 16]
+params.som.params.label_sigma = 0.12663479135255434
+params.som.params.learning_rate = 0.6224411105967932
+params.som.params.elasticity = 1.2932335034890137
+
+[[model]]
+name = "hd_dlsom_resnet_m5_smaller"
+disabled = false
+#1st conv layer kernel_size=40 padding=20
+params.dl.params.prepool 	= 4
+params.dl.params.strides	= [8, 4, 4, 4]
+params.dl.params.num_blocks	= [1, 1, 1]
+params.dl.params.filters 	= [16, 16, 32, 64]
+params.dl.params.kernel_sizes  	= [40, 3, 3, 3, 3]
+params.dl.params.paddings       = [20, 1, 1, 1, 1]
+params.dl.params.batch_norm 	= false
+params.dl.params.bn_momentum	= 0.1
+params.dl.params.force_projection_with_stride = true
+
+
+params.dl.name = "hd_resnet"
+
+
+[parameter_research]
+params.optimize.params.n_trials = 1000
+params.study.load = false
+params.study.params.direction = "maximize"
+params.study.params.study_name = "HD_DLDSOM_ResNet_parameter_research"
+params.study.params.storage = "sqlite:///out/parameter_research.sqlite"
+params.study.params.load_if_exists = true
+
+[parameter_research.params.trial]
+params.som.params.elasticity.kind = 'suggest_float'
+params.som.params.elasticity.params.name = 'elasticity'
+params.som.params.elasticity.params.low = 0.005
+params.som.params.elasticity.params.high = 4.0
+params.som.params.learning_rate.kind = 'suggest_float'
+params.som.params.learning_rate.params.name = 'learning_rate'
+params.som.params.learning_rate.params.low = 0.005
+params.som.params.learning_rate.params.high = 2.0
+params.som.params.label_sigma.kind = 'suggest_float'
+params.som.params.label_sigma.params.name = 'label_sigma'
+params.som.params.label_sigma.params.low = 0.1
+params.som.params.label_sigma.params.high = 8.0
+params.som.epochs.kind = 'suggest_int'
+params.som.epochs.params.name = 'epochs'
+params.som.epochs.params.low = 1
+params.som.epochs.params.high = 50
+
+[[parameter_research.params.trial.params.som.params.neurons]]
+kind = 'suggest_int'
+params.name = 'neurons_x'
+params.low = 5
+params.high = 24
+
+[[parameter_research.params.trial.params.som.params.neurons]]
+kind = 'suggest_int'
+params.name = 'neurons_y'
+params.low = 2
+params.high = 24

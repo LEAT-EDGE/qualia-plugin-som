@@ -1,0 +1,70 @@
+[bench]
+name = "UCI-HAR_DSOM_train"
+seed = 2
+first_run = 1
+last_run = 15
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchSOM'
+
+[deploy]
+target = 'Linux'
+converter.kind = 'QualiaCodeGen'
+quantize = ['float32']
+optimize = ['']
+
+[dataset]
+kind = "UCI_HAR"
+params.variant = "raw"
+params.path = "data/UCI HAR Dataset/"
+
+[[preprocessing]]
+kind = "DatamodelConverter"
+
+[[preprocessing]]
+kind = "Class2BinMatrix"
+
+[model_template]
+kind = "SOM"
+epochs = 30
+batch_size = 128
+params.som_layer = "DSOM"
+#load = true
+#train = false
+
+#D1 29109 0.7425190210342407
+[[model]]
+name = "uci-har_dsom_5x5"
+disabled = false
+params.neurons = [5, 5]
+params.label_sigma = 0.25
+params.learning_rate = 0.0034
+params.elasticity = 0.050
+
+#D2 41913 0.7882592678070068
+[[model]]
+name = "uci-har_dsom_6x6"
+params.neurons = [6, 6]
+params.label_sigma = 0.25
+params.learning_rate = 0.0034
+params.elasticity = 0.055
+disabled = false
+
+#D3 57045 0.795045793056488
+[[model]]
+name = "uci-har_dsom_7x7"
+params.neurons = [7, 7]
+params.label_sigma = 0.25
+params.learning_rate = 0.0034
+params.elasticity = 0.057
+disabled = false
+
+#D4 74505 0.8028503656387329
+[[model]]
+name = "uci-har_dsom_8x8"
+params.neurons = [8, 8]
+params.label_sigma = 0.25
+params.learning_rate = 0.0034
+params.elasticity = 0.058
+disabled = false

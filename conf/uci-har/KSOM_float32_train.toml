@@ -1,0 +1,88 @@
+[bench]
+name = "UCI-HAR_KSOM_float32_train"
+seed = 2
+first_run = 1
+last_run = 15
+plugins = ['qualia_plugin_som']
+
+[learningframework]
+kind = 'PyTorchSOM'
+
+[deploy]
+target = 'SparkFunEdge'
+deployer.params.dev = '/dev/serial/by-id/usb-1a86_USB2.0-Serial-*'
+evaluator.params.dev = '/dev/serial/by-id/usb-1a86_USB2.0-Serial-*'
+converter.kind = 'QualiaCodeGen'
+quantize = ['float32']
+optimize = ['']
+limit = 50
+
+[dataset]
+kind = "UCI_HAR"
+params.variant = "raw"
+params.path = "data/UCI HAR Dataset/"
+
+[[preprocessing]]
+kind = "DatamodelConverter"
+
+[[preprocessing]]
+kind = "Class2BinMatrix"
+
+[model_template]
+kind = "SOM"
+batch_size = 128
+params.som_layer = "KSOM"
+params.label_sigma = 0.25
+#load = true
+#train = false
+
+#S1 74507 0.3413640856742859
+[[model]]
+name = "uci-har_ksom8x8"
+#epochs = 25
+epochs = 2
+params.neurons = [8, 8]
+params.learning_rate = [0.4, 0.001]
+params.neighbourhood_width = [5.00, 0.01]
+disabled = false
+
+#S2 94295 0.3413640856742859
+[[model]]
+name = "uci-har_ksom9x9"
+#epochs = 80
+epochs = 2
+params.neurons = [9, 9]
+params.learning_rate = [0.4, 0.001]
+params.neighbourhood_width = [5.00, 0.01]
+disabled = false
+
+#S3 116411
+[[model]]
+name = "uci-har_ksom10x10"
+#epochs = 100
+epochs = 2
+params.neurons = [10, 10]
+params.learning_rate = [0.4, 0.001]
+params.neighbourhood_width = [5.00, 0.01]
+disabled = false
+
+#S4 167627
+[[model]]
+name = "uci-har_ksom12x12"
+#epochs = 80
+epochs = 2
+params.neurons = [12, 12]
+params.learning_rate = [0.28, 0.0005]
+params.neighbourhood_width = [5.00, 0.01]
+disabled = false
+
+#S5 196727
+[[model]]
+name = "uci-har_ksom13x13"
+#epochs = 82
+epochs = 2
+params.neurons = [13, 13]
+params.learning_rate = [0.28, 0.0005]
+params.neighbourhood_width = [5.00, 0.01]
+disabled = false
+
