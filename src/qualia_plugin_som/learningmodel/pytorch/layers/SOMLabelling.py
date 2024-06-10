@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 import math
 import torch
@@ -26,7 +28,7 @@ class SOMLabelling(nn.Module, Callback):
 
         self.labels_count = nn.Parameter(torch.zeros(tuple(out_features), device=device, dtype=torch.long), requires_grad=False)
 
-    def forward(self, x, y=None):
+    def forward(self, x: torch.Tensor, y: torch.Tensor | None = None) -> torch.Tensor:
         debug = False
 
         with torch.no_grad():
@@ -79,12 +81,13 @@ class SOMLabelling(nn.Module, Callback):
 
                 
                 #### Accumulate actitivites
-                self.activities[...,y] += neurons_distances_to_input_gaussian_normalized_batch_last
+                truth_classes = y.argmax(dim=-1)
+                self.activities[..., truth_classes] += neurons_distances_to_input_gaussian_normalized_batch_last
                 ####
 
 
                 ### Count labels
-                self.labels_count[y] += 1
+                self.labels_count[truth_classes] += 1
                 ###
 
                 ### Compute BMU location on 2D grid from 1D index
@@ -102,7 +105,7 @@ class SOMLabelling(nn.Module, Callback):
         self.activities /= self.labels_count
 
         label_from_activities = self.activities.argmax(dim=-1).reshape(self.som.out_features)
-        label_one_hot = torch.eye(self.out_features[0])[label_from_activities]
+        label_one_hot = torch.eye(self.out_features[0], dtype=self.labels.dtype, device=label_from_activities.device)[label_from_activities]
 
         self.labels.copy_(label_one_hot)
 
