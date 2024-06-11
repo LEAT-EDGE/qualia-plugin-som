@@ -1,9 +1,20 @@
-import torch
-import torch.nn as nn
+from __future__ import annotations
+
 import math
 
+import torch
+from torch import nn
+
+
 class DSOM(nn.Module):
-    def __init__(self, in_features: tuple, out_features: tuple, learning_rate: float=0.01, elasticity: float=0.01, device=None, dtype=None):
+    def __init__(self,  # noqa: PLR0913
+                 in_features: tuple[int, ...],
+                 out_features: tuple[int, ...],
+                 learning_rate: float = 0.01,
+                 elasticity: float = 0.01,
+                 device: torch.device | None = None,
+                 dtype: torch.dtype | None = None) -> None:
+        self.call_super_init = True # Support multiple inheritance from nn.Module
         super().__init__()
 
         self.out_features = out_features
@@ -12,10 +23,11 @@ class DSOM(nn.Module):
         self.elasticity_squared = nn.Parameter(torch.tensor(elasticity, device=device, dtype=dtype).square(), requires_grad=False)
         self.learning_rate = nn.Parameter(torch.tensor(learning_rate, device=device, dtype=dtype), requires_grad=False)
 
-        self.neurons = nn.Parameter(torch.empty((math.prod(out_features), math.prod(in_features)), device=device, dtype=dtype), requires_grad=False)
-        
+        self.neurons = nn.Parameter(torch.empty((math.prod(out_features), math.prod(in_features)), device=device, dtype=dtype),
+                                    requires_grad=False)
+
         with torch.no_grad():
-            torch.nn.init.uniform_(self.neurons, a=0.0, b=1.0),
+            _ = torch.nn.init.uniform_(self.neurons, a=0.0, b=1.0)
 
     # From https://stackoverflow.com/a/65168284/1447751
     def unravel_index(self,

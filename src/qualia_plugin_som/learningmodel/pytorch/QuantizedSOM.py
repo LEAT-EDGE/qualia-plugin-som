@@ -1,28 +1,39 @@
+from __future__ import annotations
+
 import math
 
+from qualia_core.typing import TYPE_CHECKING
+
+from .layers import SOMLabelling
 from .layers import som as som_layers
 from .SOM import SOM
 
+if TYPE_CHECKING:
+    from qualia_core.learningmodel.pytorch.Quantizer import QuantizationConfig  # noqa: TCH002
+    from torch import nn  # noqa: TCH002
+
+    from qualia_plugin_som.typing import SOMLayerConfigDict  # noqa: TCH001
 
 class QuantizedSOM(SOM):
-    def __init__(self,
-            input_shape: tuple,
-            output_shape: tuple,
-            som_layer: str,
-            neurons: tuple,
-            label_sigma: float,
-            bits=-1,
-            force_q=None,
-            quantize_learning_rate_elasticity: bool=False,
-            *args, **kwargs):
-        super().__init__(input_shape=input_shape, output_shape=output_shape, som_layer=som_layer, neurons=neurons, label_sigma=label_sigma, *args, **kwargs)
-    
-        extra_args = {}
-        if 'DSOM' in som_layer:
-            extra_args['quantize_learning_rate_elasticity'] = quantize_learning_rate_elasticity
+    def __init__(self,  # noqa: PLR0913
+                 quant_params: QuantizationConfig,
+                 input_shape: tuple[int, ...],
+                 output_shape: tuple[int, ...],
+                 som_layer: SOMLayerConfigDict,
+                 neurons: tuple[int, ...],
+                 label_sigma: float) -> None:
+        super().__init__(input_shape=input_shape,
+                         output_shape=output_shape,
+                         som_layer=None, # We instantiate the SOM layer ourself
+                         neurons=neurons,
+                         label_sigma=label_sigma)
 
-        self.som = getattr(som_layers, 'Quantized' + som_layer)(in_features=(math.prod(input_shape), ),
-                                      out_features=tuple(int(n) for n in neurons),
-                                      bits=bits,
-                                      force_q=force_q,
-                                      *args, **extra_args, **kwargs)
+        som_layer_cls: type[nn.Module] = getattr(som_layers, 'Quantized' + som_layer['kind'])
+
+        self.som = som_layer_cls(quant_params=quant_params,
+                                 in_features=(math.prod(input_shape), ),
+                                 out_features=tuple(int(n) for n in neurons),
+                                 **som_layer['params'])
+
+
+        self.som_labelling = SOMLabelling(out_features=output_shape, som=self.som, sigma=label_sigma)

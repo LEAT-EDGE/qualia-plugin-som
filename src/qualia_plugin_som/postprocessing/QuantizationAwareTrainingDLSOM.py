@@ -31,7 +31,8 @@ class QuantizationAwareTrainingDLSOM(QuantizationAwareTraining):
         trainer_module_dlsom = framework.TrainerModuleDLSOM(model=quantized_model,
                                                             max_epochs=1,
                                                             optimizer=None, # Disable optimizer
-                                                            dataaugmentations=trainresult.dataaugmentations)
+                                                            dataaugmentations=trainresult.dataaugmentations,
+                                                            num_classes=trainresult.trainset.y.shape[-1])
         trainer_dlsom.fit(trainer_module_dlsom,
                             DataLoader(framework.DatasetFromArray(trainresult.trainset), batch_size=quantized_model.som_batch_size, shuffle=True),
                             DataLoader(framework.DatasetFromArray(trainresult.testset), batch_size=quantized_model.som_batch_size) if len(trainresult.testset.x) > 0 else None
