@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.fx import Tracer, GraphModule
 
 from qualia_core.learningmodel.pytorch.layers import layers as custom_layers
+from qualia_plugin_som.learningmodel.pytorch.SOM import SOM
 
 class DLSOM(nn.Module):
     # Custom tracer that generates call_module for our custom Qualia layers instead of attempting to trace their forward()
@@ -71,10 +72,10 @@ class DLSOM(nn.Module):
         self.normalizeminmax = NormalizeMinMax()
 
         # Self-organizing map model
-        self.som = learningmodels.SOM(
-                            input_shape=(math.prod(self.fm_shape[1:]), ), # Flattened features
-                            output_shape=output_shape,
-                            **som.get('params', {}))
+        self.som = SOM(
+                input_shape=(math.prod(self.fm_shape[1:]), ), # Flattened features
+                output_shape=output_shape,
+                **som.get('params', {}))
         self.som_epochs = som['epochs']
         self.som_batch_size = som['batch_size']
 
