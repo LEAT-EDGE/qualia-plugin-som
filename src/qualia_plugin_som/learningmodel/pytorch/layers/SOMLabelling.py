@@ -1,13 +1,30 @@
 from __future__ import annotations
 
-import sys
 import math
+import sys
+import weakref
+
 import torch
-import torch.nn as nn
 from pytorch_lightning.callbacks import Callback
+from qualia_core.typing import TYPE_CHECKING
+from torch import nn
+
+if TYPE_CHECKING:
+    from qualia_plugin_som.learningmodel.pytorch.layers.som.SOM import SOM  # noqa: TCH001
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 class SOMLabelling(nn.Module, Callback):
-    def __init__(self, out_features: tuple, som, sigma: float, device=None, dtype=None):
+    def __init__(self,  # noqa: PLR0913
+                 out_features: tuple[int, ...],
+                 som: SOM,
+                 sigma: float,
+                 device: torch.device | None = None,
+                 dtype: torch.dtype | None = None) -> None:
+        self.call_super_init = True # Support multiple inheritance from nn.Module
         super().__init__()
 
         if len(out_features) != 1:
@@ -16,7 +33,7 @@ class SOMLabelling(nn.Module, Callback):
         self.in_features = som.in_features
         self.out_features = out_features
 
-        self.som = som
+        self.__som = weakref.ref(som)
 
         self.sigma = nn.Parameter(torch.tensor(sigma, device=device, dtype=dtype), requires_grad=False)
 
@@ -28,6 +45,7 @@ class SOMLabelling(nn.Module, Callback):
 
         self.labels_count = nn.Parameter(torch.zeros(tuple(out_features), device=device, dtype=torch.long), requires_grad=False)
 
+    @override
     def forward(self, x: torch.Tensor, y: torch.Tensor | None = None) -> torch.Tensor:
         debug = False
 
@@ -42,7 +60,7 @@ class SOMLabelling(nn.Module, Callback):
                 x = x.reshape((x.shape[0], 1, -1))
 
                 #### Compute neurons distance to input
-                input_neuron_differences = (x - self.som.neurons)
+                input_neuron_differences = (x - self.__som().neurons)
 
                 input_neuron_differences_squared = input_neuron_differences.pow(2)
 
@@ -91,7 +109,7 @@ class SOMLabelling(nn.Module, Callback):
                 ###
 
                 ### Compute BMU location on 2D grid from 1D index
-                bmu_location = self.som.unravel_index(bmu, self.som.out_features)
+                bmu_location = self.__som().unravel_index(bmu, self.__som().out_features)
                 ###
 
                 return self.labels[bmu_location.split(1, dim=-1)].squeeze(1)
@@ -104,7 +122,7 @@ class SOMLabelling(nn.Module, Callback):
     def update_labels(self):
         self.activities /= self.labels_count
 
-        label_from_activities = self.activities.argmax(dim=-1).reshape(self.som.out_features)
+        label_from_activities = self.activities.argmax(dim=-1).reshape(self.__som().out_features)
         label_one_hot = torch.eye(self.out_features[0], dtype=self.labels.dtype, device=label_from_activities.device)[label_from_activities]
 
         self.labels.copy_(label_one_hot)

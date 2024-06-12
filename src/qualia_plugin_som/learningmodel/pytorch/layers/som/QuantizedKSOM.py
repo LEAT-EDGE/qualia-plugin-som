@@ -17,6 +17,8 @@ from .KSOM import KSOM
 if TYPE_CHECKING:
     import torch  # noqa: TCH002
 
+    from qualia_plugin_som.learningmodel.pytorch.layers.SOMLabelling import SOMLabelling  # noqa: TCH001
+
 if sys.version_info >= (3, 12):
     from typing import override
 else:
@@ -58,6 +60,8 @@ class QuantizedKSOM(KSOM, QuantizerInputProtocol, QuantizerActProtocol, Quantize
                 input: torch.Tensor,  # noqa: A002
                 current_epoch: int | None = None,
                 max_epochs: int | None = None,
+                targets: torch.Tensor | None = None, # Unused for unsupervised learning
+                som_labelling: SOMLabelling | None = None, # Unused for unsupervised learning,
                 return_position: bool = True,
                 return_value: bool = True) -> torch.Tensor:
 

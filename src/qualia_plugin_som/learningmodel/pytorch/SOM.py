@@ -23,8 +23,9 @@ class SOM(nn.Module):
                  input_shape: tuple[int,...],
                  output_shape: tuple[int, ...],
                  som_layer: SOMLayerConfigDict | None,
-                 neurons: tuple[int, ...],
+                 neurons: list[int],
                  label_sigma: float) -> None:
+        self.call_super_init = True # Support multiple inheritance from nn.Module
         super().__init__()
 
         self.input_shape = input_shape

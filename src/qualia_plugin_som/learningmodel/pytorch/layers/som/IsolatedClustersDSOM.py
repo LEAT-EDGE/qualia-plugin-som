@@ -59,6 +59,6 @@ class IsolatedClustersDSOM(DSOM):
         elif return_value:
             return neurons[bmu].reshape((-1, *self.in_features))
 
-    def forward(self, input, return_position: bool=True, return_value: bool=True, y=None, som_labelling=None, *args, **kwargs):
+    def forward(self, input, return_position: bool=True, return_value: bool=True, targets=None, som_labelling=None, *args, **kwargs):
         return self.dsom(input, y, self.neurons, self.learning_rate, self.elasticity_squared, return_position=return_position,
         return_value=return_value, training=self.training, som_labelling=som_labelling)

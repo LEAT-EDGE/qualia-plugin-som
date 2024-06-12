@@ -20,7 +20,7 @@ class QuantizedSOM(SOM):
                  input_shape: tuple[int, ...],
                  output_shape: tuple[int, ...],
                  som_layer: SOMLayerConfigDict,
-                 neurons: tuple[int, ...],
+                 neurons: list[int],
                  label_sigma: float) -> None:
         super().__init__(input_shape=input_shape,
                          output_shape=output_shape,

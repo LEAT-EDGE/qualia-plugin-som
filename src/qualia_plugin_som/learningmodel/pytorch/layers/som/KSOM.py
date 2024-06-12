@@ -5,16 +5,22 @@ import math
 import sys
 
 import torch
+from qualia_core.typing import TYPE_CHECKING
 from torch import nn
 
-logger = logging.getLogger(__name__)
+from .SOM import SOM
+
+if TYPE_CHECKING:
+    from qualia_plugin_som.learningmodel.pytorch.layers.SOMLabelling import SOMLabelling  # noqa: TCH001
 
 if sys.version_info >= (3, 12):
     from typing import override
 else:
     from typing_extensions import override
 
-class KSOM(nn.Module):
+logger = logging.getLogger(__name__)
+
+class KSOM(SOM):
     def __init__(self,  # noqa: PLR0913
                  in_features: tuple[int, ...],
                  out_features: tuple[int, ...],
@@ -127,6 +133,8 @@ class KSOM(nn.Module):
                 input: torch.Tensor,  # noqa: A002
                 current_epoch: int | None = None,
                 max_epochs: int | None = None,
+                targets: torch.Tensor | None = None, # Unused for unsupervised learning
+                som_labelling: SOMLabelling | None = None, # Unused for unsupervised learning,
                 return_position: bool = True,  # noqa: FBT001, FBT002
                 return_value: bool = True) -> torch.Tensor:  # noqa: FBT001, FBT002
         return self.ksom(input,

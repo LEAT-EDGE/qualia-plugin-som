@@ -1,21 +1,33 @@
 from __future__ import annotations
 
+import logging
 import os
 import sys
 
 import colorful as cf
 import numpy as np
-import torch
-from pytorch_lightning import Trainer
+from pytorch_lightning import Callback, Trainer
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from qualia_core.datamodel.RawDataModel import RawData
 from qualia_core.learningframework import PyTorch
+from qualia_core.typing import TYPE_CHECKING
 from torch.utils.data import DataLoader
+
+if TYPE_CHECKING:
+    import torch  # noqa: TCH002
+    from pytorch_lightning.trainer.connectors.accelerator_connector import _PRECISION_INPUT  # noqa: TCH002
+    from qualia_core.dataaugmentation.DataAugmentation import DataAugmentation  # noqa: TCH002
+    from qualia_core.experimenttracking.ExperimentTracking import ExperimentTracking  # noqa: TCH002
+    from qualia_core.typing import OptimizerConfigDict
+
+    from qualia_plugin_som.learningmodel.pytorch.DLSOM import DLSOM  # noqa: TCH001
 
 if sys.version_info >= (3, 12):
     from typing import override
 else:
     from typing_extensions import override
+
+logger = logging.getLogger(__name__)
 
 class PyTorchDLSOM(PyTorch):
     import qualia_plugin_som.learningmodel.pytorch as learningmodels
@@ -31,7 +43,7 @@ class PyTorchDLSOM(PyTorch):
             bmu_indices, bmu_vectors = self.model.som.som(nfm,
                                                           current_epoch=self.current_epoch,
                                                           max_epochs=self.trainer.max_epochs,
-                                                          y=y,
+                                                          targets=y,
                                                           som_labelling=self.model.som.som_labelling)
 
             #self.train_mse(bmu_vectors, nfm)
@@ -119,30 +131,45 @@ class PyTorchDLSOM(PyTorch):
                         batch_size=model.dl_batch_size,
                         *args, **kwargs)
 
-    def evaluate_dl(self, model, trainset, validationset, epochs, batch_size, optimizer, testset=None, *args, **kwargs):
+    def evaluate_dl(self,  # noqa: PLR0913
+                    model: DLSOM,
+                    trainset: RawData | None,
+                    validationset: RawData | None,
+                    testset: RawData | None,
+                    dataaugmentations: list[DataAugmentation] | None,
+                    experimenttracking: ExperimentTracking | None,
+                    name: str | None,
+                    precision: _PRECISION_INPUT | None) -> None:
         if 'Quantized' in model.dl.__class__.__name__:
-            print(f"{cf.bold}{self.__class__.__name__}: Updating activation ranges{cf.reset}")
             # Must train to update activation range
-            super().train(model.dl,
-                            trainset=trainset,
-                            validationset=validationset,
-                            epochs=1,
-                            batch_size=model.dl_batch_size,
-                            optimizer=None, # Disable optimizer
-                            *args, **kwargs)
+            logger.info('Updating DL model activation ranges')
+            _ = super().train(model.dl,
+                              trainset=trainset,
+                              validationset=validationset,
+                              epochs=1,
+                              batch_size=model.dl_batch_size,
+                              optimizer=None, # Disable optimizer
+                              dataaugmentations=dataaugmentations,
+                              experimenttracking=experimenttracking,
+                              name=name,
+                              precision=precision)
 
-        print(f'{cf.bold}Evaluating DL on train dataset{cf.reset}')
-        super().evaluate(model.dl,
-                        testset=trainset,
-                        batch_size=model.dl_batch_size,
-                        *args, **kwargs)
+        logger.info('Evaluating DL on train dataset')
+        _ = super().evaluate(model.dl,
+                             testset=trainset,
+                             batch_size=model.dl_batch_size,
+                             dataaugmentations=dataaugmentations,
+                             experimenttracking=experimenttracking,
+                             name=name)
 
         if testset is not None:
-            print(f'{cf.bold}Evaluating DL on test dataset{cf.reset}')
-            super().evaluate(model.dl,
-                            testset=testset,
-                            batch_size=model.dl_batch_size,
-                            *args, **kwargs)
+            logger.info('Evaluating DL on test dataset')
+            _ = super().evaluate(model.dl,
+                                 testset=testset,
+                                 batch_size=model.dl_batch_size,
+                                 dataaugmentations=dataaugmentations,
+                                 experimenttracking=experimenttracking,
+                                 name=name)
 
 
     def freeze_fm(self, model):
@@ -151,19 +178,17 @@ class PyTorchDLSOM(PyTorch):
             param.requires_grad = False
         model.fm.eval()
 
-    def train_som(self,
-                  model,
-                  trainset,
-                  validationset,
-                  epochs,
-                  batch_size,
-                  optimizer,
-                  dataaugmentations=None,
-                  experimenttracking=None,
-                  name: str=None):
+    def train_som(self,  # noqa: PLR0913
+                  model: DLSOM,
+                  trainset: RawData | None,
+                  validationset: RawData | None,
+                  dataaugmentations: list[DataAugmentation],
+                  experimenttracking: ExperimentTracking | None,
+                  name: str | None,
+                  precision: _PRECISION_INPUT | None) -> None:
 
         ## Copied from qualia_core.learningframework.PyTorch, need to refactor one day…
-        from pytorch_lightning import Trainer, seed_everything
+        from pytorch_lightning import Trainer
         from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
         checkpoint_callback = ModelCheckpoint(dirpath=f'out/checkpoints/{name}',
                                               save_top_k=2,
@@ -178,13 +203,19 @@ class PyTorchDLSOM(PyTorch):
 
 
         # Train unlabelled SOM model from feature model of dl model
-        print(f'{cf.bold}Training SOM{cf.reset}')
+        logger.info('Training SOM')
 
-        early_stop_callback = EarlyStopping(monitor="trainmse", mode='min', min_delta=0.0, patience=9999, check_finite=True, strict=True, )
+        early_stop_callback = EarlyStopping(monitor='trainmse',
+                                            mode='min',
+                                            min_delta=0.0,
+                                            patience=9999,
+                                            check_finite=True,
+                                            strict=True)
         # Trainer cannot be re-used for now in PyTorch-Lightning
         trainer_dlsom = Trainer(max_epochs=model.som_epochs,
                                 accelerator=self.accelerator,
                                 devices=self.devices,
+                                precision=precision,
                                 deterministic=True,
                                 logger=self.logger(experimenttracking, name=name),
                                 enable_progress_bar=self._enable_progress_bar,
@@ -199,11 +230,13 @@ class PyTorchDLSOM(PyTorch):
                                                        metrics=['mse'])
 
         trainer_dlsom.fit(trainer_module_dlsom,
-                            DataLoader(self.DatasetFromArray(trainset), batch_size=model.som_batch_size, shuffle=True),
-                            DataLoader(self.DatasetFromArray(validationset), batch_size=model.som_batch_size) if validationset is not None else None
-                        )
+                          DataLoader(self.DatasetFromArray(trainset), batch_size=model.som_batch_size, shuffle=True),
+                          DataLoader(self.DatasetFromArray(validationset), batch_size=model.som_batch_size) if validationset is not None else None)
 
-    def subset_label(self, trainset, label_ratio, drop_unlabelled):
+    def subset_label(self,
+                     trainset: RawData,
+                     label_ratio: float,
+                     drop_unlabelled: bool) -> RawData:
         print(f'{label_ratio=}')
         perms = np.random.permutation(len(trainset.y))
         labelperms = perms[0:int(len(trainset.y) * label_ratio)]
@@ -224,7 +257,13 @@ class PyTorchDLSOM(PyTorch):
         print(f'Labelled vectors: {len([y for y in labelset.y if not np.isnan(y).any()])} / {len(labelset.y)} of {len(trainset.y)}')
         return labelset
 
-    def label_som(self, model, trainset, validationset, epochs, batch_size, optimizer, dataaugmentations=None, experimenttracking=None, name: str=None):
+    def label_som(self,  # noqa: PLR0913
+                  model: DLSOM,
+                  trainset: RawData | None,
+                  validationset: RawData | None,
+                  dataaugmentations: list[DataAugmentation] | None = None,
+                  experimenttracking: ExperimentTracking | None = None,
+                  name: str | None = None) -> None:
         experimenttracking_init = experimenttracking.initializer if experimenttracking is not None else None
 
         if len(trainset.x) < 1:
@@ -268,14 +307,41 @@ class PyTorchDLSOM(PyTorch):
                         experimenttracking=experimenttracking,
                         name=name)
 
-    def train(self, model, trainset, *args, **kwargs):
+    @override
+    def train(self,
+              model: DLSOM,
+              trainset: RawData | None,
+              validationset: RawData | None,
+              epochs: int,
+              batch_size: int,
+              optimizer: OptimizerConfigDict | None,
+              dataaugmentations: list[DataAugmentation] | None = None,
+              experimenttracking: ExperimentTracking | None = None,
+              name: str | None = None,
+              precision: _PRECISION_INPUT | None = None) -> nn.Module:
 
 
 
         if model.dl_epochs > 0:
-            self.train_dl(model, trainset=trainset, *args, **kwargs)
+            self.train_dl(model,
+                          trainset=trainset,
+                          validationset=validationset,
+                          epochs=epochs,
+                          batch_size=batch_size,
+                          optimizer=optimizer,
+                          dataaugmentations=dataaugmentations,
+                          experimenttracking=experimenttracking,
+                          name=name,
+                          precision=precision)
         else:
-            self.evaluate_dl(model, trainset=trainset, *args, **kwargs)
+            self.evaluate_dl(model,
+                             trainset=trainset,
+                             validationset=validationset,
+                             testset=None,
+                             dataaugmentations=dataaugmentations,
+                             experimenttracking=experimenttracking,
+                             name=name,
+                             precision=precision)
         self.freeze_fm(model)
 
 
@@ -289,17 +355,24 @@ class PyTorchDLSOM(PyTorch):
             logger.warning('PyTorch not seeded')
         else:
             _ = seed_everything((int(seed) * 100) % 4294967295)
-
-
-
         ### End of copy
 
 
-
         if model.som_epochs > 0:
-            self.train_som(model, trainset=trainset, *args, **kwargs)
+            self.train_som(model,
+                           trainset=trainset,
+                           validationset=validationset,
+                           dataaugmentations=dataaugmentations,
+                           experimenttracking=experimenttracking,
+                           name=name,
+                           precision=precision)
         labelset = self.subset_label(trainset, self.label_ratio, drop_unlabelled=True)
-        self.label_som(model, trainset=labelset, *args, **kwargs)
+        self.label_som(model,
+                       trainset=labelset,
+                       validationset=validationset,
+                       dataaugmentations=dataaugmentations,
+                       experimenttracking=experimenttracking,
+                       name=name)
 
         #self.plot_neurons(model.som)
 
