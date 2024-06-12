@@ -1,18 +1,31 @@
-from pathlib import Path
-from typing import Optional
+from __future__ import annotations
 
-import qualia_core
-from qualia_codegen_core.graph import ModelGraph
+import sys
+
+import qualia_core.postprocessing.QualiaCodeGen
 from qualia_codegen_plugin_som import Converter
 from qualia_codegen_plugin_som.graph import TorchModelGraph
+from qualia_core.typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from pathlib import Path  # noqa: TCH003
+
+    from qualia_codegen_core.graph import ModelGraph  # noqa: TCH002
+    from torch import nn  # noqa: TCH002
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 class QualiaCodeGen(qualia_core.postprocessing.QualiaCodeGen):
     """QualiaCodeGen converter calling Qualia-CodeGen-Plugin-SOM to handle SOM layers."""
 
-    def convert_model_to_modelgraph(self, model) -> Optional[ModelGraph]:
+    @override
+    def convert_model_to_modelgraph(self, model: nn.Module) -> ModelGraph | None:
         return TorchModelGraph(model).convert()
 
-    def convert_modelgraph_to_c(self, modelgraph: ModelGraph) -> Optional[str]:
-        converter = Converter(output_path=Path('out')/'qualia_codegen'/self._name)
+    @override
+    def convert_modelgraph_to_c(self, modelgraph: ModelGraph, output_path: Path) -> str | None:
+        converter = Converter(output_path=output_path)
         return converter.convert_model(modelgraph)
