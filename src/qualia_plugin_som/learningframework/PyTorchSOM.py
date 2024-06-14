@@ -53,19 +53,19 @@ class PyTorchSOM(PyTorch):
         @override
         def training_step(self, batch: tuple[torch.Tensor, torch.Tensor], batch_nb: int) -> torch.Tensor:
             x, y = batch
-            logits = self.model(x, y)
+            logits = self.model.som_labelling(x, y)
             self.train_metrics(logits, y)
             self.log_dict(self.train_metrics, prog_bar=True)
 
         @override
         def validation_step(self, batch: tuple[torch.Tensor, torch.Tensor], batch_nb: int) -> None:
             x, y = batch
-            logits = self.model(x, y)
+            logits = self.model.som_labelling(x, y)
             self.val_metrics(logits, y)
             self.log_dict(self.val_metrics, prog_bar=True)
 
         def configure_callbacks(self):
-            return [self.model]
+            return [self.model.som_labelling]
 
     def plot_neurons(self, model: nn.Module, trainset: RawData):
         import matplotlib.pyplot as plt
@@ -175,7 +175,7 @@ class PyTorchSOM(PyTorch):
                                         deterministic=True,
                                         logger=self.logger(experimenttracking, name=name),
                                         enable_progress_bar=self._enable_progress_bar)
-        trainer_module_som_labelling = self.TrainerModuleSOMLabelling(model=model.som_labelling,
+        trainer_module_som_labelling = self.TrainerModuleSOMLabelling(model=model,
                                                                       max_epochs=1,
                                                                       optimizer=None,
                                                                       dataaugmentations=dataaugmentations,
