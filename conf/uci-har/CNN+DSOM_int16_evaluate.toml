@@ -11,6 +11,7 @@ kind = 'PyTorchDLSOM'
 [deploy]
 target = 'Linux'
 converter.kind = 'QualiaCodeGen'
+converter.params.long_width = 64
 quantize = ['int16']
 optimize = ['']
 
@@ -28,14 +29,15 @@ kind = "Class2BinMatrix"
 [[postprocessing]]
 kind = "QuantizationAwareTraining"
 export = true
-params.width = 16
 params.epochs = 0
 params.batch_size = 128
-params.model.params.quantize_learning_rate_elasticity = true
-params.model.params.quantize_bias       = true
-params.model.params.quantize_linear     = true
-#params.model.params.quantize_add        = true
-#params.force_q = 9
+params.model.params.quant_params.bits           = 16
+params.model.params.quant_params.quantype       = "fxp"
+params.model.params.quant_params.roundtype      = "nearest"
+params.model.params.quant_params.range_setting  = "minmax"
+params.model.params.quant_params.LSQ            = false
+params.model.params.som.params.som_layer.params.quantize_learning_rate_elasticity = true
+params.model.params.fm_output = 'bn2'
 
 [model_template]
 kind = "DLSOM"
@@ -59,55 +61,55 @@ params.dl.params.batch_norm = true
 
 params.fm_output = 'relu2'
 
-params.som.epochs = 30
+params.som.epochs = 0
 params.som.batch_size = 128
-params.som.params.som_layer = "DSOM"
+params.som.params.som_layer.kind = "DSOM"
 
 #C6+D1
 [[model]]
-name = "uci-har_cnn+dsom_c6-5x5"
+name = "uci-har_cnn+dsom_c6_5x5"
 params.som.params.neurons = [5, 5]
 params.som.params.label_sigma = 2.0
-params.som.params.learning_rate = 0.0034
-params.som.params.elasticity = 0.050
-disabled = false
+params.som.params.som_layer.params.learning_rate = 0.0034
+params.som.params.som_layer.params.elasticity = 0.050
+disabled = true
 
 #C6+D2
 [[model]]
-name = "uci-har_cnn+dsom_c6-6x6"
+name = "uci-har_cnn+dsom_c6_6x6"
 params.som.params.neurons = [6, 6]
 params.som.params.label_sigma = 0.25
-params.som.params.learning_rate = 0.0034
-params.som.params.elasticity = 0.055
+params.som.params.som_layer.params.learning_rate = 0.0034
+params.som.params.som_layer.params.elasticity = 0.055
 disabled = true
 
 #C6+D3
 [[model]]
-name = "uci-har_cnn+dsom_c6-7x7"
+name = "uci-har_cnn+dsom_c6_7x7"
 params.som.params.neurons = [7, 7]
 params.som.params.label_sigma = 0.25
-params.som.params.learning_rate = 0.0034
-params.som.params.elasticity = 0.057
+params.som.params.som_layer.params.learning_rate = 0.0034
+params.som.params.som_layer.params.elasticity = 0.057
 disabled = true
 
 #C6+D4
 [[model]]
-name = "uci-har_cnn+dsom_c6-8x8"
+name = "uci-har_cnn+dsom_c6_8x8"
 params.som.params.neurons = [8, 8]
 params.som.params.label_sigma = 0.25
-params.som.params.learning_rate = 0.0034
-params.som.params.elasticity = 0.058
-disabled = true
+params.som.params.som_layer.params.learning_rate = 0.0034
+params.som.params.som_layer.params.elasticity = 0.58
+disabled = false
 
 [parameter_research]
-params.optimize.params.n_trials = 100
-params.study.load = false
-params.study.params.direction = "maximize"
-params.study.params.study_name = "UCI-HAR_CNN+DSOM_parameter_research2"
-params.study.params.storage = "sqlite:///out/parameter_research.sqlite"
-params.study.params.load_if_exists = true
+optimize.params.n_trials = 100
+study.load = false
+study.params.direction = "maximize"
+study.params.study_name = "UCI-HAR_CNN+DSOM_parameter_research2"
+study.params.storage = "sqlite:///out/parameter_research.sqlite"
+study.params.load_if_exists = true
 
-[parameter_research.params.trial]
+[parameter_research.trial]
 params.som.params.elasticity.kind = 'suggest_float'
 params.som.params.elasticity.params.name = 'elasticity'
 params.som.params.elasticity.params.low = 0.1
