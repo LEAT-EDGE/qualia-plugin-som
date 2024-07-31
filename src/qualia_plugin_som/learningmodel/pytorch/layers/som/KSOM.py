@@ -28,11 +28,7 @@ class KSOM(SOM):
                  neighbourhood_width: list[float],
                  device: torch.device | None = None,
                  dtype: torch.dtype | None = None) -> None:
-        self.call_super_init = True # Support multiple inheritance from nn.Module
-        super().__init__()
-
-        self.out_features = out_features
-        self.in_features = in_features
+        super().__init__(in_features=in_features, out_features=out_features)
 
         # [learning_rate_i, learning_rate_f]
         self.learning_rate = nn.Parameter(torch.tensor(learning_rate, device=device, dtype=dtype), requires_grad=False)

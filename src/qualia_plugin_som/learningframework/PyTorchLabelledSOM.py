@@ -10,6 +10,7 @@ from qualia_core.typing import TYPE_CHECKING
 from torch.utils.data import DataLoader
 
 if TYPE_CHECKING:
+    import torch  # noqa: TCH002
     from pytorch_lightning import Callback  # noqa: TCH002
     from pytorch_lightning.trainer.connectors.accelerator_connector import _PRECISION_INPUT  # noqa: TCH002
     from qualia_core.dataaugmentation.DataAugmentation import DataAugmentation  # noqa: TCH002
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     from qualia_core.experimenttracking.ExperimentTracking import ExperimentTracking  # noqa: TCH002
     from qualia_core.typing import OptimizerConfigDict
     from torch import nn  # noqa: TCH002
-    import torch
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -26,7 +26,7 @@ else:
 
 logger = logging.getLogger(__name__)
 
-class PyTorchSOM(PyTorch):
+class PyTorchLabelledSOM(PyTorch):
     import qualia_plugin_som.learningmodel.pytorch as learningmodels
     learningmodels.__dict__.update(PyTorch.learningmodels.__dict__) # Merge core models back. Warning: module name changes too!
 

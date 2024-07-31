@@ -6,7 +6,7 @@ last_run = 1
 plugins = ['qualia_plugin_som']
 
 [learningframework]
-kind = 'PyTorchSOM'
+kind = 'PyTorchLabelledSOM'
 
 [deploy]
 target = 'Linux'

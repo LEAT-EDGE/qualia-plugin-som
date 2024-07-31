@@ -11,7 +11,7 @@ from qualia_core.typing import TYPE_CHECKING
 from torch import nn
 from torch.fx import GraphModule, Tracer
 
-from qualia_plugin_som.learningmodel.pytorch.SOM import SOM
+from qualia_plugin_som.learningmodel.pytorch.LabelledSOM import LabelledSOM
 
 if TYPE_CHECKING:
     from qualia_core.typing import ModelConfigDict, ModelParamsConfigDict
@@ -103,7 +103,7 @@ class DLSOM(nn.Module):
         self.normalizeminmax = NormalizeMinMax()
 
         # Self-organizing map model
-        self.som = SOM(
+        self.som = LabelledSOM(
                 input_shape=(math.prod(self.fm_shape[1:]), ), # Flattened features
                 output_shape=output_shape,
                 **som.get('params', {}))

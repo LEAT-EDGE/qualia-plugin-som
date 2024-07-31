@@ -6,7 +6,7 @@ last_run = 15
 plugins = ['qualia_plugin_som']
 
 [learningframework]
-kind = 'PyTorchSOM'
+kind = 'PyTorchLabelledSOM'
 
 [deploy]
 target = 'Linux'
@@ -39,7 +39,7 @@ params.model.params.quantize_learning_rate_elasticity = false
 #params.force_q = 9
 
 [model_template]
-kind = "SOM"
+kind = "LabelledSOM"
 epochs = 30
 batch_size = 128
 params.som_layer = "DSOM"

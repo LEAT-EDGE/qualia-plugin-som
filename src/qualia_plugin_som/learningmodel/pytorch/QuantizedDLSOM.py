@@ -10,8 +10,8 @@ import torch
 from qualia_core.typing import TYPE_CHECKING
 from torch import nn
 
-from qualia_plugin_som.learningmodel.pytorch.QuantizedSOM import QuantizedSOM
-from qualia_plugin_som.learningmodel.pytorch.SOM import SOM
+from qualia_plugin_som.learningmodel.pytorch.LabelledSOM import LabelledSOM
+from qualia_plugin_som.learningmodel.pytorch.QuantizedLabelledSOM import QuantizedLabelledSOM
 
 from .DLSOM import DLSOM
 from .layers import QuantizedNormalizeMinMax
@@ -104,9 +104,9 @@ class QuantizedDLSOM(DLSOM):
         som_model_params['output_shape'] = output_shape
         if self.__quantize_som:
             som_model_params['quant_params'] = self.__quant_params
-            self.som = QuantizedSOM(**som_model_params)
+            self.som = QuantizedLabelledSOM(**som_model_params)
         else:
-            self.som = SOM(**som_model_params)
+            self.som = LabelledSOM(**som_model_params)
 
         self.som_epochs = som.get('epochs', 0)
         self.som_batch_size = som.get('batch_size', 1)

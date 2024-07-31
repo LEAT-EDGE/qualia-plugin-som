@@ -28,10 +28,7 @@ class DSOM(SOM):
                  elasticity: float = 0.01,
                  device: torch.device | None = None,
                  dtype: torch.dtype | None = None) -> None:
-        super().__init__()
-
-        self.out_features = out_features
-        self.in_features = in_features
+        super().__init__(in_features=in_features, out_features=out_features)
 
         self.elasticity_squared = nn.Parameter(torch.tensor(elasticity, device=device, dtype=dtype).square(), requires_grad=False)
         self.learning_rate = nn.Parameter(torch.tensor(learning_rate, device=device, dtype=dtype), requires_grad=False)

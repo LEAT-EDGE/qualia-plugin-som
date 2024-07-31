@@ -6,7 +6,7 @@ last_run = 15
 plugins = ['qualia_plugin_som']
 
 [learningframework]
-kind = 'PyTorchSOM'
+kind = 'PyTorchLabelledSOM'
 
 [deploy]
 target = 'SparkFunEdge'
@@ -40,7 +40,7 @@ params.batch_size = 128
 #params.force_q = 9
 
 [model_template]
-kind = "SOM"
+kind = "LabelledSOM"
 batch_size = 128
 params.som_layer = "KSOM"
 params.label_sigma = 0.25

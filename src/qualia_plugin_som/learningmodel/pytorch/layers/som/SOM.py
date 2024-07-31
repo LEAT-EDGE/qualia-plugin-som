@@ -17,9 +17,14 @@ else:
 
 class SOM(ABC, nn.Module):
 
-    def __init__(self) -> None:
+    def __init__(self,
+                 in_features: tuple[int, ...],
+                 out_features: tuple[int, ...]) -> None:
         self.call_super_init = True # Support multiple inheritance from nn.Module
         super().__init__()
+
+        self.out_features = out_features
+        self.in_features = in_features
 
     @abstractmethod
     @override

@@ -1,4 +1,5 @@
 from .PyTorchDLSOM import PyTorchDLSOM
-from .PyTorchSOM import PyTorchSOM
+from .PyTorchLabelledSOM import PyTorchLabelledSOM
+from .PyTorchUnlabelledSOM import PyTorchUnlabelledSOM
 
-__all__ = ['PyTorchDLSOM', 'PyTorchSOM']
+__all__ = ['PyTorchDLSOM', 'PyTorchLabelledSOM', 'PyTorchUnlabelledSOM']
