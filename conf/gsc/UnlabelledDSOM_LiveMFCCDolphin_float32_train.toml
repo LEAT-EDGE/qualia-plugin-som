@@ -98,7 +98,7 @@ disabled = false
 optimize.params.n_trials = 1000
 study.load = false
 study.params.direction = "maximize"
-study.params.study_name = "GSC_DSOM_MFCCDolphin_parameter_research2"
+study.study_name = "GSC_DSOM_MFCCDolphin_parameter_research2"
 study.params.storage = "sqlite:///out/parameter_research.sqlite"
 study.params.load_if_exists = true
 

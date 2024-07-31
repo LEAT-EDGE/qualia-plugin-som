@@ -155,15 +155,15 @@ params.fm_output = 'max_pool'
 #params.som.epochs = 50
 params.som.epochs = 5
 params.som.batch_size = 256
-params.som.params.som_layer = "KSOM"
+params.som.params.som_layer.kind = "KSOM"
 params.som.params.neurons = [8, 8]
 params.som.params.label_sigma = 1.0450523100480082
-#params.som.params.learning_rate = 0.0034
-#params.som.params.elasticity = 0.078
-#params.som.params.learning_rate = 0.33819523946879154
-#params.som.params.elasticity = 1.9162309672240037
-params.som.params.learning_rate = [0.1, 0.001]
-params.som.params.neighbourhood_width = [0.1, 0.001]
+#params.som.params.som_layer.params.som_layer.params.learning_rate = 0.0034
+#params.som.params.som_layer.params.elasticity = 0.078
+#params.som.params.som_layer.params.som_layer.params.learning_rate = 0.33819523946879154
+#params.som.params.som_layer.params.elasticity = 1.9162309672240037
+params.som.params.som_layer.params.som_layer.params.learning_rate = [0.1, 0.001]
+params.som.params.som_layer.params.neighbourhood_width = [0.1, 0.001]
 
 [model_template.optimizer]
 #kind = "Adam"
@@ -194,13 +194,13 @@ params.dl.name = "ellciehar_resnetv1_32_r12"
 
 [parameter_research]
 params.optimize.params.n_trials = 1000
-params.study.load = false
-params.study.params.direction = "maximize"
-params.study.params.study_name = "Ellcie-HAR_DLKSOM_ResNet_parameter_research"
-params.study.params.storage = "sqlite:///out/parameter_research.sqlite"
-params.study.params.load_if_exists = true
+study.load = false
+study.params.direction = "maximize"
+study.study_name = "Ellcie-HAR_DLKSOM_ResNet_parameter_research"
+study.params.storage = "sqlite:///out/parameter_research.sqlite"
+study.params.load_if_exists = true
 
-[parameter_research.params.trial]
+[parameter_research.trial]
 params.som.params.label_sigma.kind = 'suggest_float'
 params.som.params.label_sigma.params.name = 'label_sigma'
 params.som.params.label_sigma.params.low = 0.25
@@ -210,26 +210,26 @@ params.som.epochs.params.name = 'epochs'
 params.som.epochs.params.low = 1
 params.som.epochs.params.high = 60
 
-[[parameter_research.params.trial.params.som.params.learning_rate]]
+[[parameter_research.trial.params.som.params.som_layer.params.som_layer.params.learning_rate]]
 kind = 'suggest_float'
-params.name = 'learning_rate_i'
+params.name = 'som_layer.params.learning_rate_i'
 params.low = 0.05
 params.high = 2.0
 
-[[parameter_research.params.trial.params.som.params.learning_rate]]
+[[parameter_research.trial.params.som.params.som_layer.params.som_layer.params.learning_rate]]
 kind = 'suggest_float'
-params.name = 'learning_rate_f'
+params.name = 'som_layer.params.learning_rate_f'
 params.low = 0.0001
 params.high = 0.1
 
-[[parameter_research.params.trial.params.som.params.neighbourhood_width]]
+[[parameter_research.trial.params.som.params.som_layer.params.neighbourhood_width]]
 kind = 'suggest_float'
-params.name = 'neighbourhood_width_i'
+params.name = 'som_layer.params.neighbourhood_width_i'
 params.low = 0.05
 params.high = 10.0
 
-[[parameter_research.params.trial.params.som.params.neighbourhood_width]]
+[[parameter_research.trial.params.som.params.som_layer.params.neighbourhood_width]]
 kind = 'suggest_float'
-params.name = 'neighbourhood_width_f'
+params.name = 'som_layer.params.neighbourhood_width_f'
 params.low = 0.0001
 params.high = 0.1

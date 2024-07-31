@@ -28,7 +28,7 @@ kind = "Class2BinMatrix"
 [model_template]
 kind = "LabelledSOM"
 batch_size = 128
-params.som_layer = "KSOM"
+params.som_layer.kind = "KSOM"
 params.label_sigma = 0.25
 #load = true
 #train = false
@@ -38,8 +38,8 @@ params.label_sigma = 0.25
 name = "uci-har_ksom8x8"
 epochs = 25
 params.neurons = [8, 8]
-params.learning_rate = [0.4, 0.001]
-params.neighbourhood_width = [5.00, 0.01]
+params.som_layer.params.learning_rate = [0.4, 0.001]
+params.som_layer.params.neighbourhood_width = [5.00, 0.01]
 disabled = false
 
 #S2 94295 0.3413640856742859
@@ -47,8 +47,8 @@ disabled = false
 name = "uci-har_ksom9x9"
 epochs = 80
 params.neurons = [9, 9]
-params.learning_rate = [0.4, 0.001]
-params.neighbourhood_width = [5.00, 0.01]
+params.som_layer.params.learning_rate = [0.4, 0.001]
+params.som_layer.params.neighbourhood_width = [5.00, 0.01]
 disabled = false
 
 #S3 116411
@@ -56,8 +56,8 @@ disabled = false
 name = "uci-har_ksom10x10"
 epochs = 100
 params.neurons = [10, 10]
-params.learning_rate = [0.4, 0.001]
-params.neighbourhood_width = [5.00, 0.01]
+params.som_layer.params.learning_rate = [0.4, 0.001]
+params.som_layer.params.neighbourhood_width = [5.00, 0.01]
 disabled = false
 
 #S4 167627
@@ -65,8 +65,8 @@ disabled = false
 name = "uci-har_ksom12x12"
 epochs = 80
 params.neurons = [12, 12]
-params.learning_rate = [0.28, 0.0005]
-params.neighbourhood_width = [5.00, 0.01]
+params.som_layer.params.learning_rate = [0.28, 0.0005]
+params.som_layer.params.neighbourhood_width = [5.00, 0.01]
 disabled = false
 
 #S5 196727
@@ -74,7 +74,7 @@ disabled = false
 name = "uci-har_ksom13x13"
 epochs = 82
 params.neurons = [13, 13]
-params.learning_rate = [0.28, 0.0005]
-params.neighbourhood_width = [5.00, 0.01]
+params.som_layer.params.learning_rate = [0.28, 0.0005]
+params.som_layer.params.neighbourhood_width = [5.00, 0.01]
 disabled = false
 

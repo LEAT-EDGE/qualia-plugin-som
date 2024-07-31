@@ -54,7 +54,7 @@ params.batches = ['s2', 's4', 's5', 's6', 's8', 's9', 's11']
 params.shuffle_batches = true
 params.relabel = 'batch'
 #params.dsom.elasticity = 5.37389527147
-params.dsom.learning_rate = 0.00379058365
+params.dsom.som_layer.params.learning_rate = 0.00379058365
 
 [model_template]
 kind = "DLSOM"
@@ -75,11 +75,11 @@ params.fm_output = 'pretrained_model_avgpool'
 
 params.som.epochs = 32
 params.som.batch_size = 256
-params.som.params.som_layer = "DSOM"
+params.som.params.som_layer.kind = "DSOM"
 params.som.params.neurons = [16, 19]
 params.som.params.label_sigma = 3.7811028108399047
-params.som.params.learning_rate = 0.007581167314163834
-params.som.params.elasticity = 1.5934738178681074
+params.som.params.som_layer.params.som_layer.params.learning_rate = 0.007581167314163834
+params.som.params.som_layer.params.elasticity = 1.5934738178681074
 
 [[model]]
 name = "core50_dldsom_torchvisionresnet18"

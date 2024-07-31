@@ -142,9 +142,9 @@ epochs = 3
 batch_size = 8
 params.neurons = [13, 13]
 params.label_sigma = 0.75
-params.learning_rate = 0.0034
-#params.elasticity = 0.058
-params.elasticity = 0.078
+params.som_layer.params.learning_rate = 0.0034
+#params.som_layer.params.elasticity = 0.058
+params.som_layer.params.elasticity = 0.078
 load = true
 train = false
 

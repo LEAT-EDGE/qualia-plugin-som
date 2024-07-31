@@ -79,11 +79,11 @@ params.input_shape	= [49, 10]
 
 epochs = 27
 batch_size = 256
-params.som_layer = "DSOM"
+params.som_layer.kind = "DSOM"
 params.neurons = [5, 16]
 params.label_sigma = 0.12663479135255434
-params.learning_rate = 0.006224411105967932
-params.elasticity = 0.012932335034890137
+params.som_layer.params.learning_rate = 0.006224411105967932
+params.som_layer.params.elasticity = 0.012932335034890137
 
 [[model]]
 name = "gscdolphin_dsom"
@@ -92,21 +92,21 @@ disabled = false
 
 [parameter_research]
 params.optimize.params.n_trials = 1000
-params.study.load = false
-params.study.params.direction = "maximize"
-params.study.params.study_name = "GSC_DSOM_MFCCDolphin_parameter_research2"
-params.study.params.storage = "sqlite:///out/parameter_research.sqlite"
-params.study.params.load_if_exists = true
+study.load = false
+study.params.direction = "maximize"
+study.study_name = "GSC_DSOM_MFCCDolphin_parameter_research2"
+study.params.storage = "sqlite:///out/parameter_research.sqlite"
+study.params.load_if_exists = true
 
-[parameter_research.params.trial]
-params.elasticity.kind = 'suggest_float'
-params.elasticity.params.name = 'elasticity'
-params.elasticity.params.low = 0.0005
-params.elasticity.params.high = 0.01
-params.learning_rate.kind = 'suggest_float'
-params.learning_rate.params.name = 'learning_rate'
-params.learning_rate.params.low = 0.00005
-params.learning_rate.params.high = 0.1
+[parameter_research.trial]
+params.som_layer.params.elasticity.kind = 'suggest_float'
+params.som_layer.params.elasticity.params.name = 'elasticity'
+params.som_layer.params.elasticity.params.low = 0.0005
+params.som_layer.params.elasticity.params.high = 0.01
+params.som_layer.params.learning_rate.kind = 'suggest_float'
+params.som_layer.params.learning_rate.params.name = 'learning_rate'
+params.som_layer.params.learning_rate.params.low = 0.00005
+params.som_layer.params.learning_rate.params.high = 0.1
 params.label_sigma.kind = 'suggest_float'
 params.label_sigma.params.name = 'label_sigma'
 params.label_sigma.params.low = 0.01
@@ -116,13 +116,13 @@ epochs.params.name = 'epochs'
 epochs.params.low = 1
 epochs.params.high = 20
 
-[[parameter_research.params.trial.params.neurons]]
+[[parameter_research.trial.params.neurons]]
 kind = 'suggest_int'
 params.name = 'neurons_x'
 params.low = 6
 params.high = 64
 
-[[parameter_research.params.trial.params.neurons]]
+[[parameter_research.trial.params.neurons]]
 kind = 'suggest_int'
 params.name = 'neurons_y'
 params.low = 6

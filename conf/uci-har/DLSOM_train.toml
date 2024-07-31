@@ -53,8 +53,8 @@ params.som.epochs = 30
 params.som.batch_size = 128
 params.som.params.neurons = [8, 8]
 params.som.params.label_sigma = 1.25
-params.som.params.learning_rate = 0.05
-params.som.params.elasticity = 1.2
+params.som.params.som_layer.params.learning_rate = 0.05
+params.som.params.som_layer.params.elasticity = 1.2
 
 #load = true
 #train = false

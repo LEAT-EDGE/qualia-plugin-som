@@ -62,11 +62,11 @@ params.fm_output = 'postpool'
 
 params.som.epochs = 15
 params.som.batch_size = 256
-params.som.params.som_layer = "DSOM"
+params.som.params.som_layer.kind = "DSOM"
 params.som.params.neurons = [22, 22]
 params.som.params.label_sigma = 4.877948923266619
-params.som.params.learning_rate = 0.35174683297767348
-params.som.params.elasticity = 0.37136293252868753
+params.som.params.som_layer.params.learning_rate = 0.35174683297767348
+params.som.params.som_layer.params.elasticity = 0.37136293252868753
 
 [[model]]
 name = "hd_dlsom_cnn_m5_smaller"
@@ -84,22 +84,22 @@ params.dl.name = "hd_cnn_m5_smaller_r1"
 
 
 [parameter_research]
-params.optimize.params.n_trials = 100
-params.study.load = false
-params.study.params.direction = "maximize"
-params.study.params.study_name = "HD_DLDSOM_CNN_parameter_research"
-params.study.params.storage = "sqlite:///out/parameter_research.sqlite"
-params.study.params.load_if_exists = true
+optimize.params.n_trials = 100
+study.load = false
+study.params.direction = "maximize"
+study.study_name = "HD_DLDSOM_CNN_parameter_research"
+study.params.storage = "sqlite:///out/parameter_research.sqlite"
+study.params.load_if_exists = true
 
-[parameter_research.params.trial]
-params.som.params.elasticity.kind = 'suggest_float'
-params.som.params.elasticity.params.name = 'elasticity'
-params.som.params.elasticity.params.low = 0.005
-params.som.params.elasticity.params.high = 16.0
-params.som.params.learning_rate.kind = 'suggest_float'
-params.som.params.learning_rate.params.name = 'learning_rate'
-params.som.params.learning_rate.params.low = 0.005
-params.som.params.learning_rate.params.high = 8.0
+[parameter_research.trial]
+params.som.params.som_layer.params.elasticity.kind = 'suggest_float'
+params.som.params.som_layer.params.elasticity.params.name = 'elasticity'
+params.som.params.som_layer.params.elasticity.params.low = 0.005
+params.som.params.som_layer.params.elasticity.params.high = 16.0
+params.som.params.som_layer.params.learning_rate.kind = 'suggest_float'
+params.som.params.som_layer.params.learning_rate.params.name = 'learning_rate'
+params.som.params.som_layer.params.learning_rate.params.low = 0.005
+params.som.params.som_layer.params.learning_rate.params.high = 8.0
 params.som.params.label_sigma.kind = 'suggest_float'
 params.som.params.label_sigma.params.name = 'label_sigma'
 params.som.params.label_sigma.params.low = 0.1
@@ -109,13 +109,13 @@ params.som.epochs.params.name = 'epochs'
 params.som.epochs.params.low = 1
 params.som.epochs.params.high = 60
 
-[[parameter_research.params.trial.params.som.params.neurons]]
+[[parameter_research.trial.params.som.params.neurons]]
 kind = 'suggest_int'
 params.name = 'neurons_x'
 params.low = 3
 params.high = 32
 
-[[parameter_research.params.trial.params.som.params.neurons]]
+[[parameter_research.trial.params.som.params.neurons]]
 kind = 'suggest_int'
 params.name = 'neurons_y'
 params.low = 2
