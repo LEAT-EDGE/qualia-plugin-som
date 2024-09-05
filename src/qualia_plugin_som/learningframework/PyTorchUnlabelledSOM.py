@@ -7,8 +7,11 @@ from qualia_core.learningframework import PyTorch
 from qualia_core.typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    import numpy as np  # noqa: TCH002
+    import numpy.typing  # noqa: TCH002
     import torch  # noqa: TCH002
     from pytorch_lightning.trainer.connectors.accelerator_connector import _PRECISION_INPUT  # noqa: TCH002
+    from qualia_core.datamodel.RawDataModel import RawData  # noqa: TCH001
     from qualia_core.learningframework.PyTorch import CheckpointMetricConfigDict  # noqa: TCH002
 
 if sys.version_info >= (3, 12):
@@ -25,7 +28,7 @@ class PyTorchUnlabelledSOM(PyTorch):
     class TrainerModule(PyTorch.TrainerModule):
         @override
         def training_step(self, batch: tuple[torch.Tensor, torch.Tensor], batch_nb: int) -> torch.Tensor | None:
-            x, y = batch
+            x = batch
             bmu_indices, bmu_vectors = self(x, current_epoch=self.current_epoch, max_epochs=self.trainer.max_epochs)
             self.train_metrics(bmu_vectors, x.reshape(x.shape[0], -1))
             self.log_dict(self.train_metrics, prog_bar=True)
@@ -33,14 +36,14 @@ class PyTorchUnlabelledSOM(PyTorch):
 
         @override
         def validation_step(self, batch: tuple[torch.Tensor, torch.Tensor], batch_nb: int) -> None:
-            x, y = batch
+            x = batch
             bmu_indices, bmu_vectors = self(x)
             self.val_metrics(bmu_vectors, x.reshape(x.shape[0], -1))
             self.log_dict(self.val_metrics, prog_bar=True)
 
         @override
         def test_step(self, batch: tuple[torch.Tensor, torch.Tensor], batch_nb: int) -> None:
-            x, y = batch
+            x = batch
             bmu_indices, bmu_vectors = self(x)
             self.test_metrics(bmu_vectors, x.reshape(x.shape[0], -1))
             self.log_dict(self.test_metrics, prog_bar=True)
@@ -70,3 +73,11 @@ class PyTorchUnlabelledSOM(PyTorch):
                        loss=None,
                        enable_confusion_matrix=False,
                        checkpoint_metric=checkpoint_metric)
+
+    class DatasetFromArray(PyTorch.DatasetFromArray):
+        def __init__(self, dataset: RawData) -> None:
+            super().__init__(dataset)
+
+        @override
+        def __getitem__(self, index: int) -> tuple[numpy.typing.NDArray[np.float32]]:
+            return self.x[index]
