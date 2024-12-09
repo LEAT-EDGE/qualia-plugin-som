@@ -3,8 +3,6 @@ from __future__ import annotations
 import sys
 
 import qualia_core.postprocessing.QualiaCodeGen
-from qualia_codegen_plugin_som import Converter
-from qualia_codegen_plugin_som.graph import TorchModelGraph
 from qualia_core.typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -23,9 +21,11 @@ class QualiaCodeGen(qualia_core.postprocessing.QualiaCodeGen):
 
     @override
     def convert_model_to_modelgraph(self, model: nn.Module) -> ModelGraph | None:
+        from qualia_codegen_plugin_som.graph import TorchModelGraph
         return TorchModelGraph(model).convert()
 
     @override
     def convert_modelgraph_to_c(self, modelgraph: ModelGraph, output_path: Path) -> str | None:
+        from qualia_codegen_plugin_som import Converter
         converter = Converter(output_path=output_path)
         return converter.convert_model(modelgraph)
